@@ -2,6 +2,7 @@ package com.yyzy.ondriveweb.controller;
 
 import com.microsoft.graph.models.DriveItem;
 import com.yyzy.ondriveweb.dto.OneDriveUser;
+import com.yyzy.ondriveweb.dto.common.FileResponse;
 import com.yyzy.ondriveweb.dto.common.Result;
 import com.yyzy.ondriveweb.service.OneDriveService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class OneDriveController {
     }
 
     @RequestMapping("/getFileList")
-    public Result<List<DriveItem>> getFileList(@RequestParam Long driveId, @RequestParam String itemsId) {
+    public Result<List<FileResponse>> getFileList(@RequestParam Long driveId, @RequestParam String itemsId) {
         return oneDriveService.getFileList(driveId, itemsId);
     }
 

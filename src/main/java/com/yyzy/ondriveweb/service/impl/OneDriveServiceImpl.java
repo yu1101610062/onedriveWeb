@@ -9,19 +9,19 @@ import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
 import com.microsoft.graph.models.DriveItem;
 import com.microsoft.graph.requests.DriveItemCollectionPage;
 import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.requests.ListItemRequestBuilder;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import com.yyzy.ondriveweb.dao.OneDriveUserDao;
 import com.yyzy.ondriveweb.dto.OneDriveUser;
+import com.yyzy.ondriveweb.dto.common.FileResponse;
 import com.yyzy.ondriveweb.dto.common.Result;
 import com.yyzy.ondriveweb.service.OneDriveService;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Request;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Collections;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -76,7 +76,7 @@ public class OneDriveServiceImpl implements OneDriveService {
     }
 
     @Override
-    public Result<List<DriveItem>> getFileList(Long driveId, String itemsId) {
+    public Result<List<FileResponse>> getFileList(Long driveId, String itemsId) {
         //根据driveId找到登陆凭证并获取客户端实例
         OneDriveUser oneDriveUser = oneDriveUserDao.selectById(driveId);
         ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
@@ -98,9 +98,22 @@ public class OneDriveServiceImpl implements OneDriveService {
             driveItemCollectionPage = client.users(oneDriveUser.getMail()).drive().root().children().buildRequest().top(Integer.MAX_VALUE).get();
         }
         if (driveItemCollectionPage != null) {
-            return new Result<List<DriveItem>>().setSuccessResult(driveItemCollectionPage.getCurrentPage());
+            List<DriveItem> currentPage = driveItemCollectionPage.getCurrentPage();
+            ArrayList<FileResponse> fileResponses = new ArrayList<>();
+            for (DriveItem driveItem : currentPage) {
+                FileResponse fileResponse = new FileResponse();
+                fileResponse.setId(driveItem.id);
+                fileResponse.setName(driveItem.name);
+                fileResponse.setParentId(driveItem.parentReference != null ? driveItem.parentReference.id : null);
+                fileResponse.setIsFolder(driveItem.folder != null);
+                fileResponse.setChildCount(driveItem.folder != null ? driveItem.folder.childCount : null);
+                fileResponse.setLastModifiedName(driveItem.lastModifiedBy != null ? (driveItem.lastModifiedBy.user != null ? driveItem.lastModifiedBy.user.displayName : null) : null);
+                fileResponse.setLastModifiedTime(driveItem.lastModifiedDateTime != null ? driveItem.lastModifiedDateTime.toString() : null);
+                fileResponses.add(fileResponse);
+            }
+            return new Result<List<FileResponse>>().setSuccessResult(fileResponses);
         }
-        return new Result<List<DriveItem>>().setFailResult();
+        return new Result<List<FileResponse>>().setFailResult();
     }
 
     @Override
