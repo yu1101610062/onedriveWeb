@@ -17,10 +17,12 @@ import com.yyzy.ondriveweb.dto.common.Result;
 import com.yyzy.ondriveweb.service.OneDriveService;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Request;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +77,11 @@ public class OneDriveServiceImpl implements OneDriveService {
 
     }
 
+    public static void main(String[] args) {
+        String md5 ="Bhlec123456^%$#@!";
+        md5 = DigestUtils.md5DigestAsHex(md5.getBytes(StandardCharsets.UTF_8));
+        System.out.println(md5);
+    }
     @Override
     public Result<List<FileResponse>> getFileList(Long driveId, String itemsId) {
         //根据driveId找到登陆凭证并获取客户端实例
